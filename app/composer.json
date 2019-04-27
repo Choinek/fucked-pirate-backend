@@ -1,0 +1,17 @@
+{
+    "name": "vundor/fucked-pirate-backend",
+    "description": "It's server for game Fucked Pirate",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Choinek",
+            "email": "adrian@chojnicki.pl"
+        }
+    ],
+    "minimum-stability": "beta",
+    "require": {},
+    "autoload": {
+        "psr-4": {"VundorFuckedPirate\\": "game/"}
+    }
+}
