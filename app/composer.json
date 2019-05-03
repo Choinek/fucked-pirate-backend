@@ -12,6 +12,6 @@
     "minimum-stability": "beta",
     "require": {},
     "autoload": {
-        "psr-4": {"VundorFuckedPirate\\": "game/"}
+        "psr-4": {"VundorFuckedPirate\\": "src/"}
     }
 }
