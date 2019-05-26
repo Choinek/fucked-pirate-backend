@@ -52,7 +52,7 @@ class GameServer
 
     public function run()
     {
-        swoole_timer_tick(1000, function ($timerId) {
+        swoole_timer_tick(100, function ($timerId) {
             $data = [
                 'players' => [],
             ];
@@ -65,7 +65,9 @@ class GameServer
                 $data['players'][$playerId] = $player->getBasicInfo();
             }
 
-            $this->connection->push(json_encode($data));
+            Server::$gameworldTable->set('players', [
+                'data' => json_encode($data)
+            ]);
         });
     }
 
