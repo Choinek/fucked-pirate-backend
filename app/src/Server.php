@@ -125,6 +125,15 @@ class Server
     }
 
     /**
+     * @param string $message
+     * @param int $type
+     */
+    static function log(string $message, int $type = 0)
+    {
+        echo "[" . date(DATE_ATOM) . "][$type] $message\n";
+    }
+
+    /**
      * @param swoole_websocket_server $server
      */
     public function start($server)
@@ -159,8 +168,9 @@ class Server
         if (isset($data['gameserver'])) {
             self::setGameserver($frame);
             $server->push($frame->fd, json_encode(['s' => 100]));
-            swoole_timer_tick(100, function ($timerId) use ($server) {
-                $this->broadcast($server, self::$gameworldTable->get('players')['data'] ?? '[]');
+            swoole_timer_tick(1000, function ($timerId) use ($server) {
+                $playersData = json_decode(self::$gameworldTable->get('players')['data']) ?? [];
+                $this->broadcast($server, json_encode(['players' => $playersData]));
             });
         } elseif (isset($data['login'])) {
             self::$playersTable->set($frame->fd, [
@@ -170,7 +180,9 @@ class Server
             $server->push(self::getGameserverId(), json_encode(
                 ['login' => $data['login']]
             ));
-        } elseif (isset($data['x']) && (isset($data['y']))) {
+        }
+
+        if (isset($data['x']) && (isset($data['y']))) {
             if ($playerData = self::$playersTable->get($frame->fd)) {
                 $server->push(self::getGameserverId(), json_encode([
                     'login' => $playerData['login'],
@@ -180,7 +192,22 @@ class Server
             } else {
                 self::log("Player from connection {$frame->fd} not found");
             }
+        } elseif (isset($data['world'])) {
+            if ($playerData = self::$playersTable->get($frame->fd)) {
+                $server->push(self::getGameserverId(), json_encode([
+                    'login' => $playerData['login'],
+                    'world' => $data['world']
+                ]));
+            }
         }
+    }
+
+    /**
+     * @return int
+     */
+    static function getGameserverId()
+    {
+        return self::$handlersTable->get('gameserver')['value'] ?? 0;
     }
 
     /**
@@ -197,15 +224,6 @@ class Server
     }
 
     /**
-     * @param swoole_websocket_server $server
-     * @param int $fd
-     */
-    public function close($server, $fd)
-    {
-        echo "connection close: {$fd}\n";
-    }
-
-    /**
      * @param swoole_websocket_frame $frame
      */
     static function setGameserver($frame)
@@ -217,19 +235,11 @@ class Server
     }
 
     /**
-     * @return int
+     * @param swoole_websocket_server $server
+     * @param int $fd
      */
-    static function getGameserverId()
+    public function close($server, $fd)
     {
-        return self::$handlersTable->get('gameserver')['value'] ?? 0;
-    }
-
-    /**
-     * @param string $message
-     * @param int $type
-     */
-    static function log(string $message, int $type = 0)
-    {
-        echo "[" . date(DATE_ATOM) . "][$type] $message\n";
+        echo "connection close: {$fd}\n";
     }
 }
