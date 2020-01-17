@@ -39,18 +39,19 @@ class GameServer
 
             $data = json_decode($frame->data, true);
 
-            if (isset($data['login'])) {
-                if (!isset($this->players[$data['login']])) {
-                    $this->loginNewPlayer($data['login']);
+            if (isset($data[Player::LOGIN_PARAM])) {
+                if (!isset($this->players[$data[Player::LOGIN_PARAM]])) {
+                    if ($sessionId = $this->loginNewPlayer($data[Player::LOGIN_PARAM])) {
+                        $connection->push(json_encode(['session_id' => $sessionId]));
+                    }
                 }
 
                 if (isset($data['x']) && isset($data['y'])) {
-                    $this->players[$data['login']]->setPosition($data['x'], $data['y']);
-                    var_dump($this->players);
+                    $this->players[$data[Player::LOGIN_PARAM]]->setPosition($data['x'], $data['y']);
                 }
 
-                if (isset($data['world'])) {
-                    $this->players[$data['login']]->setCurrentWorld($data['world']);
+                if (isset($data[Player::WORLD_PARAM])) {
+                    $this->players[$data[Player::LOGIN_PARAM]]->setCurrentWorld($data[Player::WORLD_PARAM]);
                 }
             }
         });
@@ -73,6 +74,7 @@ class GameServer
             $player = new Player($login);
             $this->players[$login] = $player;
             $this->sessions[$player->getCurrentSessionToken()] = $player;
+            return $player->getCurrentSessionToken();
         }
     }
 

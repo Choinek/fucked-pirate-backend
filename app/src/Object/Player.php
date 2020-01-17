@@ -8,6 +8,10 @@ namespace VundorFuckedPirate\Object;
  */
 class Player
 {
+    const WORLD_PARAM = 'w';
+    const LOGIN_PARAM = 'l';
+    const POSITION_PARAM = 'p';
+
     /**
      * @var string
      */
@@ -74,8 +78,8 @@ class Player
     public function getPublicInfo()
     {
         return [
-            'position' => $this->getPosition(),
-            'world'    => $this->getCurrentWorld()
+            Player::POSITION_PARAM => $this->getPosition(),
+            Player::WORLD_PARAM    => $this->getCurrentWorld()
         ];
     }
 

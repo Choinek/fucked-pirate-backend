@@ -8,6 +8,7 @@ use swoole_websocket_frame;
 use swoole_websocket_server;
 use swoole_http_client;
 use swoole_table;
+use VundorFuckedPirate\Object\Player;
 
 /**
  * Class Server
@@ -71,7 +72,7 @@ class Server
     public function initializeTables()
     {
         self::$playersTable = new swoole_table(1024);
-        self::$playersTable->column('login', swoole_table::TYPE_STRING, 50);
+        self::$playersTable->column(Player::LOGIN_PARAM, swoole_table::TYPE_STRING, 50);
         self::$playersTable->create();
         self::$handlersTable = new swoole_table(64);
         self::$handlersTable->column('value', swoole_table::TYPE_STRING, 50);
@@ -172,31 +173,32 @@ class Server
                 $playersData = json_decode(self::$gameworldTable->get('players')['data']) ?? [];
                 $this->broadcast($server, json_encode(['players' => $playersData]));
             });
-        } elseif (isset($data['login'])) {
+        } elseif (isset($data[Player::LOGIN_PARAM])) {
             self::$playersTable->set($frame->fd, [
-                'login' => $data['login']
+                Player::LOGIN_PARAM => $data[Player::LOGIN_PARAM]
             ]);
-            self::log("Player logged as: {$data['login']} from {$frame->fd}");
+            self::log("Player logged as: {$data[Player::LOGIN_PARAM]} from {$frame->fd}");
             $server->push(self::getGameserverId(), json_encode(
-                ['login' => $data['login']]
+                [Player::LOGIN_PARAM => $data[Player::LOGIN_PARAM]]
             ));
         }
 
         if (isset($data['x']) && (isset($data['y']))) {
             if ($playerData = self::$playersTable->get($frame->fd)) {
                 $server->push(self::getGameserverId(), json_encode([
-                    'login' => $playerData['login'],
+                    Player::LOGIN_PARAM => $playerData[Player::LOGIN_PARAM],
                     'x'     => $data['x'],
-                    'y'     => $data['y']
+                    'y'     => $data['y'],
+                    Player::WORLD_PARAM     => $data[Player::WORLD_PARAM]
                 ]));
             } else {
                 self::log("Player from connection {$frame->fd} not found");
             }
-        } elseif (isset($data['world'])) {
+        } elseif (isset($data[Player::WORLD_PARAM])) {
             if ($playerData = self::$playersTable->get($frame->fd)) {
                 $server->push(self::getGameserverId(), json_encode([
-                    'login' => $playerData['login'],
-                    'world' => $data['world']
+                    Player::LOGIN_PARAM => $playerData[Player::LOGIN_PARAM],
+                    Player::WORLD_PARAM => $data[Player::WORLD_PARAM]
                 ]));
             }
         }
