@@ -169,7 +169,7 @@ class Server
         if (isset($data['gameserver'])) {
             self::setGameserver($frame);
             $server->push($frame->fd, json_encode(['s' => 100]));
-            swoole_timer_tick(80, function ($timerId) use ($server) {
+            swoole_timer_tick(20, function ($timerId) use ($server) {
                 $playersData = json_decode(self::$gameworldTable->get('players')['data'], true) ?? [];
                 $playersResponseData = [];
                 foreach ($playersData as $playerName => $playerData) {
