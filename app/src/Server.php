@@ -170,7 +170,7 @@ class Server
             self::setGameserver($frame);
             $server->push($frame->fd, json_encode(['s' => 100]));
             swoole_timer_tick(1000, function ($timerId) use ($server) {
-                $playersData = self::$gameworldTable->get('players')['data'] ?? [];
+                $playersData = json_decode(self::$gameworldTable->get('players')['data']) ?? [];
                 $playersResponseData = [];
                 foreach ($playersData as $playerName => $playerData) {
                     $playersResponseData[] = array_merge(['name' => $playerName], $playerData);
