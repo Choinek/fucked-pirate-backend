@@ -173,7 +173,7 @@ class Server
                 $playersData = json_decode(self::$gameworldTable->get('players')['data']) ?? [];
                 $playersResponseData = [];
                 foreach ($playersData as $playerName => $playerData) {
-                    $playersResponseData[] = array_merge(['name' => $playerName], $playersData);
+                    $playersResponseData[] = array_merge(['name' => $playerName], $playerData);
                 }
                 $this->broadcast($server, json_encode(['players' => $playersResponseData]));
             });
