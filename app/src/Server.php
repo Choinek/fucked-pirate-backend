@@ -171,7 +171,11 @@ class Server
             $server->push($frame->fd, json_encode(['s' => 100]));
             swoole_timer_tick(1000, function ($timerId) use ($server) {
                 $playersData = json_decode(self::$gameworldTable->get('players')['data']) ?? [];
-                $this->broadcast($server, json_encode(['players' => $playersData]));
+                $playersResponseData = [];
+                foreach ($playersData as $playerName => $playerData) {
+                    $playersResponseData[] = array_merge(['name' => $playerName], $playersData);
+                }
+                $this->broadcast($server, json_encode(['players' => $playersResponseData]));
             });
         } elseif (isset($data[Player::LOGIN_PARAM])) {
             self::$playersTable->set($frame->fd, [
@@ -187,9 +191,9 @@ class Server
             if ($playerData = self::$playersTable->get($frame->fd)) {
                 $server->push(self::getGameserverId(), json_encode([
                     Player::LOGIN_PARAM => $playerData[Player::LOGIN_PARAM],
-                    'x'     => $data['x'],
-                    'y'     => $data['y'],
-                    Player::WORLD_PARAM     => $data[Player::WORLD_PARAM]
+                    'x'                 => $data['x'],
+                    'y'                 => $data['y'],
+                    Player::WORLD_PARAM => $data[Player::WORLD_PARAM]
                 ]));
             } else {
                 self::log("Player from connection {$frame->fd} not found");
