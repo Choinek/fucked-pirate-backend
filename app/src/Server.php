@@ -29,6 +29,11 @@ class Server
     /**
      * @var swoole_table
      */
+    static $chatTable;
+
+    /**
+     * @var swoole_table
+     */
     static $handlersTable;
 
     /**
@@ -74,12 +79,21 @@ class Server
         self::$playersTable = new swoole_table(1024);
         self::$playersTable->column(Player::LOGIN_PARAM, swoole_table::TYPE_STRING, 50);
         self::$playersTable->create();
+
         self::$handlersTable = new swoole_table(64);
         self::$handlersTable->column('value', swoole_table::TYPE_STRING, 50);
         self::$handlersTable->create();
+
         self::$gameworldTable = new swoole_table(8);
         self::$gameworldTable->column('data', swoole_table::TYPE_STRING, 1000000);
         self::$gameworldTable->create();
+
+        self::$chatTable = new swoole_table(1024);
+        self::$chatTable->column('timestamp', swoole_table::TYPE_INT);
+        self::$chatTable->column('player', swoole_table::TYPE_STRING, 50);
+        self::$chatTable->column('message', swoole_table::TYPE_STRING, 1000000);
+        self::$chatTable->column('world', swoole_table::TYPE_STRING, 50);
+        self::$chatTable->create();
     }
 
     /**
@@ -163,7 +177,6 @@ class Server
             if (isset($data['players'])) {
                 $this->broadcast($server, $frame->data);
             }
-
         }
 
         if (isset($data['gameserver'])) {
@@ -203,6 +216,14 @@ class Server
                 $server->push(self::getGameserverId(), json_encode([
                     Player::LOGIN_PARAM => $playerData[Player::LOGIN_PARAM],
                     Player::WORLD_PARAM => $data[Player::WORLD_PARAM]
+                ]));
+            }
+        } elseif (isset($data[Player::MESSAGE_PARAM])) {
+            if ($playerData = self::$playersTable->get($frame->fd)) {
+                $this->broadcast($server, json_encode([
+                    Player::LOGIN_PARAM   => $playerData[Player::LOGIN_PARAM],
+                    Player::WORLD_PARAM   => $playerData[Player::WORLD_PARAM],
+                    Player::MESSAGE_PARAM => $data[Player::MESSAGE_PARAM]
                 ]));
             }
         }

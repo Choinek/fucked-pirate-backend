@@ -9,6 +9,7 @@ namespace VundorFuckedPirate\Object;
 class Player
 {
     const WORLD_PARAM = 'w';
+    const MESSAGE_PARAM = 'm';
     const LOGIN_PARAM = 'l';
     const POSITION_PARAM = 'p';
 
